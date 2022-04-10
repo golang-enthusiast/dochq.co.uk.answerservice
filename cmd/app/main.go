@@ -32,6 +32,7 @@ func main() {
 
 	var (
 		answerTableName      = os.Getenv(domain.EnvAnswerTableName)
+		answerEventTableName = os.Getenv(domain.EnvAnswerEventTableName)
 		answerEventQueueName = os.Getenv(domain.EnvAnswerEventQueueName)
 	)
 
@@ -70,11 +71,12 @@ func main() {
 	// Repository layer.
 	//
 	answerRepository := pkgDynamodb.NewAnswerRepository(awsSession, answerTableName)
+	answerEventRepository := pkgDynamodb.NewAnswerEventRepository(awsSession, answerEventTableName)
 
 	// Service layer.
 	//
 	queueService := sqsqueue.NewQueueService(sqsClient, logger)
-	answerService := pkgAnswer.NewService(answerRepository, queueService, answerEventQueueName, logger)
+	answerService := pkgAnswer.NewService(answerRepository, answerEventRepository, queueService, answerEventQueueName, logger)
 
 	// Endpoints layer.
 	//

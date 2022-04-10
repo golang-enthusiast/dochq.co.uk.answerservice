@@ -14,10 +14,11 @@ import (
 // be used as a helper struct, to collect all of the endpoints into a single
 // parameter.
 type Endpoints struct {
-	CreateAnswerEndpoint endpoint.Endpoint
-	UpdateAnswerEndpoint endpoint.Endpoint
-	DeleteAnswerEndpoint endpoint.Endpoint
-	GetAnswerEndpoint    endpoint.Endpoint
+	CreateAnswerEndpoint     endpoint.Endpoint
+	UpdateAnswerEndpoint     endpoint.Endpoint
+	DeleteAnswerEndpoint     endpoint.Endpoint
+	GetAnswerEndpoint        endpoint.Endpoint
+	GetAnswerHistoryEndpoint endpoint.Endpoint
 }
 
 // NewEndpoint returns a Set that wraps the provided server, and wires in all of the
@@ -27,10 +28,11 @@ func NewEndpoint(service domain.AnswerService, logger log.Logger) Endpoints {
 		return helpers.SetupEndpoint(creator(service), logger, "AnswerEndpoints", logKey)
 	}
 	return Endpoints{
-		CreateAnswerEndpoint: factory(MakeCreateAnswerEndpoint, "CreateAnswer"),
-		UpdateAnswerEndpoint: factory(MakeUpdateAnswerEndpoint, "UpdateAnswer"),
-		DeleteAnswerEndpoint: factory(MakeDeleteAnswerEndpoint, "DeleteAnswer"),
-		GetAnswerEndpoint:    factory(MakeGetAnswerEndpoint, "GetAnswer"),
+		CreateAnswerEndpoint:     factory(MakeCreateAnswerEndpoint, "CreateAnswer"),
+		UpdateAnswerEndpoint:     factory(MakeUpdateAnswerEndpoint, "UpdateAnswer"),
+		DeleteAnswerEndpoint:     factory(MakeDeleteAnswerEndpoint, "DeleteAnswer"),
+		GetAnswerEndpoint:        factory(MakeGetAnswerEndpoint, "GetAnswer"),
+		GetAnswerHistoryEndpoint: factory(MakeGetAnswerHistoryEndpoint, "GetAnswerHistory"),
 	}
 }
 
@@ -130,6 +132,33 @@ type GetAnswerResponse struct {
 	Err    error
 }
 
+// MakeGetAnswerHistoryEndpoint Impl.
+func MakeGetAnswerHistoryEndpoint(service domain.AnswerService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(GetAnswerHistoryRequest)
+
+		// Call the service.
+		events, err := service.GetAnswerHistory(ctx, req.Key)
+		if err != nil {
+			return nil, err
+		}
+		return GetAnswerHistoryResponse{
+			Events: events,
+		}, nil
+	}
+}
+
+// GetAnswerHistoryRequest request.
+type GetAnswerHistoryRequest struct {
+	Key domain.AnswerKey
+}
+
+// GetAnswerHistoryResponse response.
+type GetAnswerHistoryResponse struct {
+	Events []*domain.AnswerEvent
+	Err    error
+}
+
 // //
 //
 // Error interceptors.
@@ -142,6 +171,7 @@ var (
 	_ endpoint.Failer = UpdateAnswerResponse{}
 	_ endpoint.Failer = DeleteAnswerResponse{}
 	_ endpoint.Failer = GetAnswerResponse{}
+	_ endpoint.Failer = GetAnswerHistoryResponse{}
 )
 
 // Failed implements endpoint.Failer.
@@ -155,3 +185,6 @@ func (r DeleteAnswerResponse) Failed() error { return r.Err }
 
 // Failed implements endpoint.Failer.
 func (r GetAnswerResponse) Failed() error { return r.Err }
+
+// Failed implements endpoint.Failer.
+func (r GetAnswerHistoryResponse) Failed() error { return r.Err }

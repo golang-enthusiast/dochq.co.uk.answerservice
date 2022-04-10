@@ -9,3 +9,21 @@ message Answer {
     string key = 1; // key
     string value = 2; // value
 }
+
+/**
+ * Represents the answer event type.
+*/
+enum AnswerEventType {
+    ANSWER_EVENT_TYPE_UNKNOWN = 0;
+    ANSWER_EVENT_TYPE_CREATE = 1;
+    ANSWER_EVENT_TYPE_UPDATE = 2;
+    ANSWER_EVENT_TYPE_DELETE = 3;
+}
+
+/**
+ * Represents the answer event model.
+*/
+message AnswerEvent {
+    AnswerEventType event_type = 1;
+    Answer data = 2;
+}

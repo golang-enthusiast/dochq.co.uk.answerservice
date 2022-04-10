@@ -56,4 +56,7 @@ type AnswerService interface {
 
 	// GetAnswer - returns an existing answer by the provided key.
 	GetAnswer(ctx context.Context, key AnswerKey) (*Answer, error)
+
+	// GetAnswerHistory - returns an answer history by the provided key.
+	GetAnswerHistory(ctx context.Context, key AnswerKey) ([]*AnswerEvent, error)
 }

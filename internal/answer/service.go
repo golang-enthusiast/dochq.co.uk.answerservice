@@ -10,19 +10,21 @@ import (
 )
 
 type service struct {
-	repository     domain.AnswerRepository
-	queueService   domain.QueueService
-	eventQueueName string
+	repository      domain.AnswerRepository
+	eventRepository domain.AnswerEventRepository
+	queueService    domain.QueueService
+	eventQueueName  string
 }
 
 // NewService creates a new service with necessary dependencies.
 func NewService(repository domain.AnswerRepository,
+	eventRepository domain.AnswerEventRepository,
 	queueService domain.QueueService,
 	eventQueueName string,
 	logger log.Logger) domain.AnswerService {
 	var service domain.AnswerService
 	{
-		service = newBasicService(repository, queueService, eventQueueName)
+		service = newBasicService(repository, eventRepository, queueService, eventQueueName)
 		service = LoggingServiceMiddleware(logger)(service)
 	}
 	return service
@@ -30,12 +32,14 @@ func NewService(repository domain.AnswerRepository,
 
 // Returns a naive, stateless implementation of service.
 func newBasicService(repository domain.AnswerRepository,
+	eventRepository domain.AnswerEventRepository,
 	queueService domain.QueueService,
 	eventQueueName string) domain.AnswerService {
 	return &service{
-		repository:     repository,
-		queueService:   queueService,
-		eventQueueName: eventQueueName,
+		repository:      repository,
+		eventRepository: eventRepository,
+		queueService:    queueService,
+		eventQueueName:  eventQueueName,
 	}
 }
 
@@ -158,4 +162,17 @@ func (s *service) GetAnswer(ctx context.Context, key domain.AnswerKey) (*domain.
 	// Return result.
 	//
 	return s.repository.Get(key)
+}
+
+func (s *service) GetAnswerHistory(ctx context.Context, key domain.AnswerKey) ([]*domain.AnswerEvent, error) {
+
+	// Check key.
+	//
+	if len(key) == 0 {
+		return nil, errors.NewErrInvalidArgument("AnswerKey required")
+	}
+
+	// Return result.
+	//
+	return s.eventRepository.ListEvents(key)
 }

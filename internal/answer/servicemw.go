@@ -64,3 +64,14 @@ func (mw loggingMiddleware) GetAnswer(ctx context.Context, key domain.AnswerKey)
 	}()
 	return mw.next.GetAnswer(ctx, key)
 }
+
+func (mw loggingMiddleware) GetAnswerHistory(ctx context.Context, key domain.AnswerKey) (list []*domain.AnswerEvent, err error) {
+	defer func() {
+		_ = mw.logger.Log("method", "GetAnswerHistory",
+			"key", key,
+			"list", list,
+			"err", err,
+		)
+	}()
+	return mw.next.GetAnswerHistory(ctx, key)
+}

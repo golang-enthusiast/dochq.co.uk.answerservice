@@ -8,6 +8,7 @@ import (
 	awsSession "github.com/aws/aws-sdk-go/aws/session"
 	awsDynamodb "github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
 type answerEventRepo struct {
@@ -56,21 +57,21 @@ func answerEventTableMustExist(db *awsDynamodb.DynamoDB, tableName string) {
 	_, err = db.CreateTable(&awsDynamodb.CreateTableInput{
 		AttributeDefinitions: []*awsDynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String(domain.JSONFieldEventType),
+				AttributeName: aws.String(domain.JSONFieldAnswerKey),
 				AttributeType: aws.String("S"),
 			},
 			{
-				AttributeName: aws.String(domain.JSONFieldAnswerKey),
+				AttributeName: aws.String(domain.JSONFieldEventType),
 				AttributeType: aws.String("S"),
 			},
 		},
 		KeySchema: []*awsDynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String(domain.JSONFieldEventType),
+				AttributeName: aws.String(domain.JSONFieldAnswerKey),
 				KeyType:       aws.String("HASH"),
 			},
 			{
-				AttributeName: aws.String(domain.JSONFieldAnswerKey),
+				AttributeName: aws.String(domain.JSONFieldEventType),
 				KeyType:       aws.String("RANGE"),
 			},
 		},
@@ -119,4 +120,47 @@ func (r *answerEventRepo) Create(answerEvent *domain.AnswerEvent) error {
 	_, err = r.db.PutItem(input)
 
 	return err
+}
+
+func (r *answerEventRepo) ListEvents(key domain.AnswerKey) ([]*domain.AnswerEvent, error) {
+
+	// Build expression.
+	//
+	filter := expression.Name(domain.JSONFieldAnswerKey).Equal(expression.Value(key))
+
+	expr, err := expression.NewBuilder().WithProjection(r.getProjection()).WithFilter(filter).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	params := &awsDynamodb.ScanInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		TableName:                 aws.String(r.tableName),
+	}
+
+	// Make the DynamoDB Query API call
+	result, err := r.db.Scan(params)
+	if err != nil {
+		return nil, err
+	}
+	var items []*domain.AnswerEvent
+	for _, i := range result.Items {
+		item := &domain.AnswerEvent{}
+		err = dynamodbattribute.UnmarshalMap(i, item)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (r *answerEventRepo) getProjection() expression.ProjectionBuilder {
+	return expression.NamesList(
+		expression.Name(domain.JSONFieldAnswerKey),
+		expression.Name(domain.JSONFieldEventType),
+		expression.Name(domain.JSONFieldData))
 }

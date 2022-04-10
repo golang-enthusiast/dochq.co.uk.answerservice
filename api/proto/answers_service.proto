@@ -51,6 +51,16 @@ service AnswerService {
             get: "/v1/answers"
         };       
     }
+
+    /**
+     * Returns an answer history by the provided key.
+     * If the answer does not exist, an error "Not found" will be returned.
+     */
+     rpc GetAnswerHistory(GetAnswerHistoryRequest) returns (GetAnswerHistoryResponse) { 
+        option (google.api.http) = {
+            get: "/v1/answers/{key}/history"
+        };       
+    }    
 }
 
 message CreateAnswerRequest {
@@ -80,4 +90,12 @@ message GetAnswerRequest {
 
 message GetAnswerResponse {
     dochq.co.uk.answerservice.generated.model.v1.Answer answer = 1;
+}
+
+message GetAnswerHistoryRequest {
+    string key = 1;
+}
+
+message GetAnswerHistoryResponse {
+    repeated dochq.co.uk.answerservice.generated.model.v1.AnswerEvent answer_events = 1;
 }

@@ -19,6 +19,7 @@ services:
             - AWS_SECRET_ACCESS_KEY=test
             - AWS_REGION=us-east-1
             - ANSWER_TABLE_NAME=answers
+            - ANSWER_EVENT_TABLE_NAME=answer.events
             - ANSWER_EVENT_QUEUE_NAME=answer.events
         ports:
             - "6565:6565"

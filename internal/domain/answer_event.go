@@ -19,6 +19,7 @@ const (
 // JSON fields.
 const (
 	JSONFieldEventType = "eventType"
+	JSONFieldData      = "data"
 )
 
 // List of valid answer event types.
@@ -39,4 +40,5 @@ type AnswerEvent struct {
 // AnswerEventRepository - provides access to a storage.
 type AnswerEventRepository interface {
 	Create(answerEvent *AnswerEvent) error
+	ListEvents(key AnswerKey) ([]*AnswerEvent, error)
 }

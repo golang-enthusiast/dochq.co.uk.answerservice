@@ -2,6 +2,7 @@ package answer
 
 import (
 	"context"
+	"fmt"
 
 	apiv1 "dochq.co.uk.answerservice/api/generated/dochq.co.uk/answerserviceapi/v1"
 	"dochq.co.uk.answerservice/internal/domain"
@@ -13,10 +14,11 @@ import (
 )
 
 type grpcServer struct {
-	createAnswer grpctransport.Handler
-	updateAnswer grpctransport.Handler
-	deleteAnswer grpctransport.Handler
-	getAnswer    grpctransport.Handler
+	createAnswer     grpctransport.Handler
+	updateAnswer     grpctransport.Handler
+	deleteAnswer     grpctransport.Handler
+	getAnswer        grpctransport.Handler
+	getAnswerHistory grpctransport.Handler
 }
 
 // NewGRPCServer makes a set of endpoints available as a gRPC AddServer.
@@ -45,6 +47,12 @@ func NewGRPCServer(endpoints Endpoints, logger log.Logger) apiv1.AnswerServiceSe
 			endpoints.GetAnswerEndpoint,
 			decodeGetAnswerRequest,
 			encodeGetAnswerResponse,
+			options...,
+		),
+		getAnswerHistory: grpctransport.NewServer(
+			endpoints.GetAnswerHistoryEndpoint,
+			decodeGetAnswerHistoryRequest,
+			encodeGetAnswerHistoryResponse,
 			options...,
 		),
 	}
@@ -160,6 +168,47 @@ func encodeGetAnswerResponse(_ context.Context, response interface{}) (interface
 	}, nil
 }
 
+// GetAnswerHistory Impl.
+func (s *grpcServer) GetAnswerHistory(ctx context.Context, req *apiv1.GetAnswerHistoryRequest) (*apiv1.GetAnswerHistoryResponse, error) {
+	rep, err := helpers.ServeGrpc(ctx, req, s.getAnswerHistory)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*apiv1.GetAnswerHistoryResponse), nil
+}
+
+func decodeGetAnswerHistoryRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*apiv1.GetAnswerHistoryRequest)
+	return GetAnswerHistoryRequest{
+		Key: domain.AnswerKey(req.Key),
+	}, nil
+}
+
+func encodeGetAnswerHistoryResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(GetAnswerHistoryResponse)
+	if resp.Err != nil {
+		return &apiv1.GetAnswerHistoryResponse{}, resp.Err
+	}
+	events := make([]*apiv1.AnswerEvent, len(resp.Events))
+	for i, e := range resp.Events {
+		data, err := encodeAnswer(e.Data)
+		if err != nil {
+			return &apiv1.GetAnswerHistoryResponse{}, err
+		}
+		eventType, err := encodeAnswerEventType(e.EventType)
+		if err != nil {
+			return &apiv1.GetAnswerHistoryResponse{}, err
+		}
+		events[i] = &apiv1.AnswerEvent{
+			EventType: eventType,
+			Data:      data,
+		}
+	}
+	return &apiv1.GetAnswerHistoryResponse{
+		AnswerEvents: events,
+	}, nil
+}
+
 func decodeAnswer(answer *apiv1.Answer) (*domain.Answer, error) {
 	if answer == nil {
 		return nil, errors.NewErrInternal("Cannot decode nil value")
@@ -178,4 +227,17 @@ func encodeAnswer(answer *domain.Answer) (*apiv1.Answer, error) {
 		Key:   string(answer.Key),
 		Value: string(answer.Value),
 	}, nil
+}
+
+func encodeAnswerEventType(eventType domain.AnswerEventType) (apiv1.AnswerEventType, error) {
+	switch eventType {
+	case domain.CreateAnswerEventType:
+		return apiv1.AnswerEventType_ANSWER_EVENT_TYPE_CREATE, nil
+	case domain.UpdateAnswerEventType:
+		return apiv1.AnswerEventType_ANSWER_EVENT_TYPE_UPDATE, nil
+	case domain.DeleteAnswerEventType:
+		return apiv1.AnswerEventType_ANSWER_EVENT_TYPE_DELETE, nil
+	default:
+		return apiv1.AnswerEventType_ANSWER_EVENT_TYPE_UNKNOWN, fmt.Errorf("Unknown event type %v", eventType)
+	}
 }

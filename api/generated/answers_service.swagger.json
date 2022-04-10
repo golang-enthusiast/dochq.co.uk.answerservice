@@ -132,6 +132,37 @@
           "AnswerService"
         ]
       }
+    },
+    "/v1/answers/{key}/history": {
+      "get": {
+        "summary": "*\nReturns an answer history by the provided key.\nIf the answer does not exist, an error \"Not found\" will be returned.",
+        "operationId": "AnswerService_GetAnswerHistory",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetAnswerHistoryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AnswerService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -177,11 +208,45 @@
       },
       "description": "*\nRepresents the answer model."
     },
+    "v1AnswerEvent": {
+      "type": "object",
+      "properties": {
+        "event_type": {
+          "$ref": "#/definitions/v1AnswerEventType"
+        },
+        "data": {
+          "$ref": "#/definitions/v1Answer"
+        }
+      },
+      "description": "*\nRepresents the answer event model."
+    },
+    "v1AnswerEventType": {
+      "type": "string",
+      "enum": [
+        "ANSWER_EVENT_TYPE_UNKNOWN",
+        "ANSWER_EVENT_TYPE_CREATE",
+        "ANSWER_EVENT_TYPE_UPDATE",
+        "ANSWER_EVENT_TYPE_DELETE"
+      ],
+      "default": "ANSWER_EVENT_TYPE_UNKNOWN",
+      "description": "*\nRepresents the answer event type."
+    },
     "v1CreateAnswerResponse": {
       "type": "object"
     },
     "v1DeleteAnswerResponse": {
       "type": "object"
+    },
+    "v1GetAnswerHistoryResponse": {
+      "type": "object",
+      "properties": {
+        "answer_events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1AnswerEvent"
+          }
+        }
+      }
     },
     "v1GetAnswerResponse": {
       "type": "object",
