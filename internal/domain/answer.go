@@ -11,9 +11,10 @@ const (
 	JSONFieldAnswerValue = "value"
 )
 
-// Answer key/value types.
 type (
-	AnswerKey   string
+	// AnswerKey - key type.
+	AnswerKey string
+	// AnswerValue - value type.
 	AnswerValue string
 )
 
