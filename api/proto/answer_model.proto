@@ -1,0 +1,11 @@
+syntax = "proto3";
+package dochq.co.uk.answerservice.generated.model.v1;
+option go_package = "dochq.co.uk/answerserviceapi/v1";
+
+/**
+ * Represents the answer model.
+*/
+message Answer {
+    string key = 1; // key
+    string value = 2; // value
+}

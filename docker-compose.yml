@@ -1,0 +1,44 @@
+version: "3.3"
+
+services:
+    localstack:
+        image: localstack/localstack:0.12.14
+        environment:
+            - SERVICES=dynamodb,sqs
+            - HOSTNAME_EXTERNAL=localstack
+            - HOSTNAME=localstack
+        ports:
+            - "4566:4566"
+    app:
+        image: golang:1.16-alpine
+        working_dir: /app    
+        command: go run cmd/app/main.go
+        environment:
+            - AWS_MOCK_SERVER_ADDRESS=http://localstack:4566
+            - AWS_ACCESS_KEY_ID=test
+            - AWS_SECRET_ACCESS_KEY=test
+            - AWS_REGION=us-east-1
+            - ANSWER_TABLE_NAME=answers
+            - ANSWER_EVENT_QUEUE_NAME=answer.events
+        ports:
+            - "6565:6565"
+            - "8000:8000"
+        volumes:
+            - ./:/app
+        depends_on:
+            - localstack
+    worker:
+        image: golang:1.16-alpine
+        working_dir: /app    
+        command: go run cmd/worker/main.go
+        environment:
+            - AWS_MOCK_SERVER_ADDRESS=http://localstack:4566
+            - AWS_ACCESS_KEY_ID=test
+            - AWS_SECRET_ACCESS_KEY=test
+            - AWS_REGION=us-east-1
+            - ANSWER_EVENT_TABLE_NAME=answer.events
+            - ANSWER_EVENT_QUEUE_NAME=answer.events
+        volumes:
+            - ./:/app
+        depends_on:
+            - localstack                        

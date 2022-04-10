@@ -1,0 +1,198 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "answers_service.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/answers": {
+      "get": {
+        "summary": "*\nReturns an answer by the provided key.\nIf the answer does not exist, an error \"Not found\" will be returned.",
+        "operationId": "AnswerService_GetAnswer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetAnswerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AnswerService"
+        ]
+      },
+      "delete": {
+        "summary": "*\nDeletes an existing answer.\nIf the answer does not exist, an error \"Not found\" will be returned.",
+        "operationId": "AnswerService_DeleteAnswer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DeleteAnswerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AnswerService"
+        ]
+      },
+      "post": {
+        "summary": "*\nCreates a new answer.\nIf the answer exists, an error \"Already exists\" will be returned.",
+        "operationId": "AnswerService_CreateAnswer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateAnswerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Answer"
+            }
+          }
+        ],
+        "tags": [
+          "AnswerService"
+        ]
+      },
+      "put": {
+        "summary": "*\nUpdates an existing answer.\nIf the answer does not exist, an error \"Not found\" will be returned.",
+        "operationId": "AnswerService_UpdateAnswer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateAnswerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Answer"
+            }
+          }
+        ],
+        "tags": [
+          "AnswerService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1Answer": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "description": "*\nRepresents the answer model."
+    },
+    "v1CreateAnswerResponse": {
+      "type": "object"
+    },
+    "v1DeleteAnswerResponse": {
+      "type": "object"
+    },
+    "v1GetAnswerResponse": {
+      "type": "object",
+      "properties": {
+        "answer": {
+          "$ref": "#/definitions/v1Answer"
+        }
+      }
+    },
+    "v1UpdateAnswerResponse": {
+      "type": "object"
+    }
+  }
+}

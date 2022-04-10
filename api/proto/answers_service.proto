@@ -1,0 +1,83 @@
+syntax = "proto3";
+package dochq.co.uk.answerservice.generated.service.v1;
+option go_package = "dochq.co.uk/answerserviceapi/v1";
+
+import "google/api/annotations.proto";
+import "answer_model.proto";
+
+/**
+* The Answer service.
+*/
+service AnswerService {
+
+    /**
+    * Creates a new answer.
+    * If the answer exists, an error "Already exists" will be returned.
+    */
+    rpc CreateAnswer(CreateAnswerRequest) returns (CreateAnswerResponse) { 
+        option (google.api.http) = {
+            post: "/v1/answers"
+            body: "answer"
+        };       
+    }    
+
+    /**
+    * Updates an existing answer.
+    * If the answer does not exist, an error "Not found" will be returned.
+    */
+    rpc UpdateAnswer(UpdateAnswerRequest) returns (UpdateAnswerResponse) {
+        option (google.api.http) = {
+            put: "/v1/answers"
+            body: "answer"
+        }; 
+    }    
+
+    /**
+    * Deletes an existing answer.
+    * If the answer does not exist, an error "Not found" will be returned.
+    */
+    rpc DeleteAnswer(DeleteAnswerRequest) returns (DeleteAnswerResponse) {
+        option (google.api.http) = {
+            delete: "/v1/answers"
+        }; 
+    }   
+
+    /**
+     * Returns an answer by the provided key.
+     * If the answer does not exist, an error "Not found" will be returned.
+     */
+    rpc GetAnswer(GetAnswerRequest) returns (GetAnswerResponse) { 
+        option (google.api.http) = {
+            get: "/v1/answers"
+        };       
+    }
+}
+
+message CreateAnswerRequest {
+    dochq.co.uk.answerservice.generated.model.v1.Answer answer = 1;
+}
+
+message CreateAnswerResponse {
+}
+
+message UpdateAnswerRequest {
+    dochq.co.uk.answerservice.generated.model.v1.Answer answer = 1;
+}
+
+message UpdateAnswerResponse {
+}
+
+message DeleteAnswerRequest {
+    string key = 1;
+}
+
+message DeleteAnswerResponse {    
+}
+
+message GetAnswerRequest {
+    string key = 1;
+}
+
+message GetAnswerResponse {
+    dochq.co.uk.answerservice.generated.model.v1.Answer answer = 1;
+}
